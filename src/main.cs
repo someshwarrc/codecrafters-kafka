@@ -16,9 +16,8 @@ TcpClient client = await server.AcceptTcpClientAsync();
 try {
     NetworkStream stream = client.GetStream();
     int message_size = 0;
-    int correlation_id = 7;
     await stream.WriteBigEndian(message_size);
-    await stream.WriteBigEndian(correlation_id);
+    await stream.ParseHeader();
     await stream.FlushAsync();
 } 
 catch (SocketException ex)
