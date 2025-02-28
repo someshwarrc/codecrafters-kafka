@@ -18,15 +18,13 @@ public static class StreamExtensions
     {
         if (api_version >= 0 && api_version <= 4)
         {
-            Console.WriteLine("UNSUPPORTED_VERSION");
-            return 35; // Error Code for Unsupported Version
+            return 1;
         }
-        return 1;
+        Console.WriteLine("UNSUPPORTED_VERSION");
+        return 35; // Error Code for Unsupported Version
     }
     public static async Task ParseHeader(this NetworkStream stream) {
         byte[] binaryData = new byte[1024];
-        
-        int bytesRead = await stream.ReadAsync(binaryData, 0, binaryData.Length);
         
         int bytesRead = await stream.ReadAsync(binaryData, 0, binaryData.Length);
         bool isLittleEndian = BitConverter.IsLittleEndian;    
@@ -38,6 +36,7 @@ public static class StreamExtensions
 
         Console.WriteLine($"Correlation Id: {correlation_id}");
         Console.WriteLine($"API Key: {api_key}");
+        Console.WriteLine($"API Version: {api_version}");
         Console.WriteLine($"API Version Error Code: {CheckApiVersion(api_version)}");
         await stream.WriteBigEndian(correlation_id);
         await stream.WriteBigEndian(CheckApiVersion(api_version));
