@@ -14,16 +14,6 @@ public static class StreamExtensions
         }
         await stream.WriteAsync(bytes);
     }
-
-    public static int CheckApiVersion(int api_version)
-    {
-        if (api_version >= 0 && api_version <= 4)
-        {
-            Console.WriteLine("UNSUPPORTED_VERSION");
-            return 35; // Error Code for Unsupported Version
-        }
-        return 1;
-    }
     public static int CheckApiVersion(int api_version)
     {
         if (api_version >= 0 && api_version <= 4)
