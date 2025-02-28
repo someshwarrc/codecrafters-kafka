@@ -47,10 +47,10 @@ public static class StreamExtensions
         int correlation_id = BinaryPrimitives.ReadInt32BigEndian(binaryData[8..12]);
 
         Console.WriteLine($"Correlation Id: {correlation_id}");
+        Console.WriteLine($"API Key: {api_key}");
         Console.WriteLine($"API Version: {api_version}");
-        Console.WriteLine($"API Version: {api_version}");
+        Console.WriteLine($"Message Length: {message_length}");
         await stream.WriteBigEndian(correlation_id);
-        await stream.WriteBigEndian(CheckApiVersion(api_version));
         await stream.WriteBigEndian(CheckApiVersion(api_version));
     }
 }
