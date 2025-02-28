@@ -15,14 +15,27 @@ public static class StreamExtensions
         await stream.WriteAsync(bytes);
     }
 
+    public static int CheckApiVersion(int api_version)
+    {
+        if (api_version >= 0 && api_version <= 4)
+        {
+            Console.WriteLine("UNSUPPORTED_VERSION");
+            return 35; // Error Code for Unsupported Version
+        }
+        return 1;
+    }
     public static async Task ParseHeader(this NetworkStream stream) {
         byte[] binaryData = new byte[1024];
-        await stream.ReadAsync(binaryData, 0, binaryData.Length);
+        
+        int bytesRead = await stream.ReadAsync(binaryData, 0, binaryData.Length);
         bool isLittleEndian = BitConverter.IsLittleEndian;    
         
+        int api_version = BinaryPrimitives.ReadInt16BigEndian(binaryData[2..4]);
         int correlation_id = BinaryPrimitives.ReadInt32BigEndian(binaryData[8..12]);
 
         Console.WriteLine($"Correlation Id: {correlation_id}");
+        Console.WriteLine($"API Version: {api_version}");
         await stream.WriteBigEndian(correlation_id);
+        await stream.WriteBigEndian(CheckApiVersion(api_version));
     }
 }
