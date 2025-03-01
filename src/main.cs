@@ -15,8 +15,6 @@ server.Start();
 TcpClient client = await server.AcceptTcpClientAsync();
 try {
     NetworkStream stream = client.GetStream();
-    int message_size = 0;
-    await stream.WriteBigEndian(message_size);
     await stream.ParseHeader();
     await stream.FlushAsync();
 } 
