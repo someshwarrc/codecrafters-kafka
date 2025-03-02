@@ -1,6 +1,7 @@
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using System.Buffers.Binary;
+using System.Net;
 
 namespace App.Kafka;
 public static class StreamExtensions
@@ -14,6 +15,34 @@ public static class StreamExtensions
         }
         await stream.WriteAsync(bytes);
     }
+
+    public class ApiKey {
+        public short api_key;
+        public short min_version;
+        public short max_version;
+    }
+
+    public static async Task HandleApiKey(this NetworkStream stream, int api_key) {
+
+        if(api_key==18) {
+            await stream.WriteInt8BigEndianAsync(2); // api_key array length 1 byte
+            await stream.WriteInt16BigEndianAsync(18); // api_key 2 bytes
+            await stream.WriteInt16BigEndianAsync(4); // min_version 2 bytes
+            await stream.WriteInt16BigEndianAsync(4); // max_version 2 bytes
+            await stream.WriteInt8BigEndianAsync(1); // tagBuffer 1 byte
+            await stream.WriteInt32BigEndianAsync(500); // throttleTimeMs 4 bytes
+            await stream.WriteInt8BigEndianAsync(1); // tagBuffer 1 byte
+        }
+
+
+    }
+
+    public static async Task WriteInt8BigEndianAsync(this NetworkStream stream, byte input) 
+    {
+        byte[] bytes =  new byte[] {input};
+        await stream.WriteAsync(bytes);
+    }
+
 
     public static async Task WriteInt16BigEndianAsync(this NetworkStream stream, short input)
     {
@@ -43,13 +72,19 @@ public static class StreamExtensions
         int api_key = BinaryPrimitives.ReadInt16BigEndian(binaryData[4..6]);
         int api_version = BinaryPrimitives.ReadInt16BigEndian(binaryData[6..8]);
         int correlation_id = BinaryPrimitives.ReadInt32BigEndian(binaryData[8..12]);
-        // Console.WriteLine($"Message Length: {message_length}");
-        // Console.WriteLine($"Correlation Id: {correlation_id}");
-        // Console.WriteLine($"API Key: {api_key}");
-        // Console.WriteLine($"API Version: {api_version}");
+
+
+
+        Console.WriteLine($"Message Length: {message_length}");
+        Console.WriteLine($"Correlation Id: {correlation_id}");
+        Console.WriteLine($"API Key: {api_key}");
+        Console.WriteLine($"API Version: {api_version}");
         // Console.WriteLine($"API Version Error Code: {CheckApiVersion(api_version)}");
-        await stream.WriteInt32BigEndianAsync(message_length);
-        await stream.WriteInt32BigEndianAsync(correlation_id);
-        await stream.WriteInt16BigEndianAsync(CheckApiVersion(api_version)); // transmit only 2 bytes - INT16 
+        await stream.WriteInt32BigEndianAsync(message_length); // 4 bytes
+        await stream.WriteInt32BigEndianAsync(correlation_id); // 4 bytes
+        await stream.WriteInt16BigEndianAsync(CheckApiVersion(api_version)); // error_code 2 bytes
+
+        await stream.HandleApiKey(api_key);
+
     }
 }
