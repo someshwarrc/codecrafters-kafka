@@ -22,16 +22,16 @@ public static class StreamExtensions
         public short max_version;
     }
 
-    public static async Task HandleApiKey(this NetworkStream stream, int api_key) {
-
+    public static async Task HandleApiVersion(this NetworkStream stream, int api_key) {
+        // response to handle ApiVersion request
         if(api_key==18) {
             await stream.WriteInt8BigEndianAsync(2); // api_key array length 1 byte
             await stream.WriteInt16BigEndianAsync(18); // api_key 2 bytes
             await stream.WriteInt16BigEndianAsync(4); // min_version 2 bytes
             await stream.WriteInt16BigEndianAsync(4); // max_version 2 bytes
-            await stream.WriteInt8BigEndianAsync(1); // tagBuffer 1 byte
-            await stream.WriteInt32BigEndianAsync(500); // throttleTimeMs 4 bytes
-            await stream.WriteInt8BigEndianAsync(1); // tagBuffer 1 byte
+            await stream.WriteInt8BigEndianAsync(0); // tagBuffer 1 byte
+            await stream.WriteInt32BigEndianAsync(0); // throttleTimeMs 4 bytes
+            await stream.WriteInt8BigEndianAsync(0); // tagBuffer 1 byte
         }
 
 
@@ -80,11 +80,12 @@ public static class StreamExtensions
         Console.WriteLine($"API Key: {api_key}");
         Console.WriteLine($"API Version: {api_version}");
         // Console.WriteLine($"API Version Error Code: {CheckApiVersion(api_version)}");
-        await stream.WriteInt32BigEndianAsync(message_length); // 4 bytes
+        // 23 bytes - 4 bytes message_length + 4 bytes correlation_id + 2 bytes error_code + 13 bytes APIVersion Response
+        await stream.WriteInt32BigEndianAsync(23); // 4 bytes
         await stream.WriteInt32BigEndianAsync(correlation_id); // 4 bytes
         await stream.WriteInt16BigEndianAsync(CheckApiVersion(api_version)); // error_code 2 bytes
 
-        await stream.HandleApiKey(api_key);
+        await stream.HandleApiVersion(api_key);
 
     }
 }
