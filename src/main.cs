@@ -12,22 +12,15 @@ TcpListener server = new TcpListener(IPAddress.Any, 9092);
 server.Start();
 // server.AcceptSocket(); // wait for client
 
-TcpClient client = await server.AcceptTcpClientAsync();
-try {
+async Task HandleClientAsync(TcpClient client)
+{
     NetworkStream stream = client.GetStream();
     await stream.ParseHeader();
     await stream.FlushAsync();
-} 
-catch (SocketException ex)
-{
-    Console.WriteLine($"SocketException: {ex.Message}");
 }
-catch (Exception ex)
-{
-    Console.WriteLine($"Exception: {ex.Message}");
-}
-finally
-{
-    client.Close();
-    server.Stop();
+
+
+while(true){
+    TcpClient client = await server.AcceptTcpClientAsync();
+    _=HandleClientAsync(client);
 }
