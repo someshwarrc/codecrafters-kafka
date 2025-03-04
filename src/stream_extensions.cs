@@ -85,6 +85,11 @@ public static class StreamExtensions
         await stream.WriteInt16BigEndianAsync(CheckApiVersion(api_version)); // error_code 2 bytes
 
         await stream.HandleApiVersion(api_key);
+    }
 
+    async public static Task ParseApiVersionRequest(this NetworkStream stream)
+    {
+        await stream.ParseHeader();
+        await stream.FlushAsync();
     }
 }
