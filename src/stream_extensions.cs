@@ -23,7 +23,7 @@ public static class StreamExtensions
         public short max_version;
     }
 
-    public static async Task HandleApiVersion(this NetworkStream stream, int api_key) {
+    public static async Task HandleApiVersionRequest(this NetworkStream stream, int api_key) {
         // response to handle ApiVersion request
         if(api_key==18) {
             await stream.WriteInt8BigEndianAsync(2); // api_key array length 1 byte
@@ -34,6 +34,31 @@ public static class StreamExtensions
             await stream.WriteInt32BigEndianAsync(0); // throttleTimeMs 4 bytes
             await stream.WriteInt8BigEndianAsync(0); // tagBuffer 1 byte
         }
+        // response to handle DescribeTopicPartitions API request
+        if(api_key==75) {
+            await stream.WriteInt8BigEndianAsync(2); // api_key array length 1 byte
+            await stream.WriteInt16BigEndianAsync(75); // api_key 2 bytes
+            await stream.WriteInt16BigEndianAsync(0); // min_version 2 bytes
+            await stream.WriteInt16BigEndianAsync(0); // max_version 2 bytes
+            await stream.WriteInt8BigEndianAsync(0); // tagBuffer 1 byte
+            await stream.WriteInt32BigEndianAsync(0); // throttleTimeMs 4 bytes
+            await stream.WriteInt8BigEndianAsync(0); // tagBuffer 1 byte
+        }
+
+    }
+
+    public static async Task HandleDescribeTopicPartition(this NetworkStream stream, int api_key) {
+            // topics array length - 1 byte
+                // length(name) + 1 - varint 2 bytes
+                // name - length(name) bytes
+            // tag_buffer - 1 byte
+            // response_partition_limit - INT32 - 4 bytes
+            // topic_name array length - 1 byte
+                // length(topic_name) + 1 - varint 2 bytes
+                // topic_name - length(name) bytes
+                // partition_index - INT32 - 4 bytes
+            // tag_buffer - 1 byte
+            await Task.Delay(0);
     }
 
     public static async Task WriteInt8BigEndianAsync(this NetworkStream stream, byte input) 
@@ -62,7 +87,7 @@ public static class StreamExtensions
         
         return error_code;
     }
-    public static async Task ParseHeader(this NetworkStream stream) {
+    public static async Task ParseRequest(this NetworkStream stream) {
         byte[] binaryData = new byte[1024];
         
         int bytesRead = await stream.ReadAsync(binaryData, 0, binaryData.Length);    
@@ -84,12 +109,12 @@ public static class StreamExtensions
         await stream.WriteInt32BigEndianAsync(correlation_id); // 4 bytes
         await stream.WriteInt16BigEndianAsync(CheckApiVersion(api_version)); // error_code 2 bytes
 
-        await stream.HandleApiVersion(api_key);
+        await stream.HandleApiVersionRequest(api_key);
     }
 
     async public static Task ParseApiVersionRequest(this NetworkStream stream)
     {
-        await stream.ParseHeader();
+        await stream.ParseRequest();
         await stream.FlushAsync();
     }
 }
