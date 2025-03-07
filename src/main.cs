@@ -28,9 +28,11 @@ class KafkaServer
                     Console.WriteLine("Processing new request...");
                     
                     // Read and process API Version Request (v4)
-                    await stream.ParseApiVersionRequest();
+                    await stream.ParseRequest();
 
                     Console.WriteLine("Request processed successfully.");
+                    
+                    await stream.FlushAsync();
                 }
                 catch (IOException ioEx)
                 {
